@@ -46,6 +46,7 @@ body{
     gap: 1rem;
     padding: 1rem;
     border-top: 1px solid rgba(255, 255, 0, 0.59);
+    max-height: 140px;
 }
 
 #msg-box button{
@@ -66,6 +67,9 @@ body{
 #msg-box input{
     padding: 1rem;
 }
+#msg-box textarea{
+    height: 100px;
+}
 
 #msg-box textarea:focus{
     outline: none;
@@ -75,7 +79,7 @@ body{
 #chat{
     border: 1px solid black;
     border-radius: 7px;
-    height: calc(100vh - 150px);
+    height: calc(100dvh - 150px);
     margin: 1rem;
     overflow-x: hidden;
     overflow-y: auto;
