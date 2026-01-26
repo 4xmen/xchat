@@ -75,7 +75,7 @@ body{
 #chat{
     border: 1px solid black;
     border-radius: 7px;
-    height: calc(100vh - 130px);
+    height: calc(100vh - 150px);
     margin: 1rem;
     overflow-x: hidden;
     overflow-y: auto;

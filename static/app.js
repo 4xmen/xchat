@@ -14,6 +14,37 @@ function checkAndScrollToEnd() {
     }
 }
 
+
+//set cookie
+function setCookie(name, value, days) {
+    const encodedValue = encodeURIComponent(value);
+    const date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    const expires = "expires=" + date.toUTCString();
+    document.cookie = `${name}=${encodedValue};${expires};path=/`;
+}
+
+// read cookie
+function getCookie(name) {
+    const cookieName = name + "=";
+    const decodedCookie = decodeURIComponent(document.cookie);
+    const cookieArray = decodedCookie.split(';');
+
+    for(let i = 0; i < cookieArray.length; i++) {
+        let cookie = cookieArray[i];
+        while (cookie.charAt(0) === ' ') {
+            cookie = cookie.substring(1);
+        }
+        if (cookie.indexOf(cookieName) === 0) {
+            // استفاده از decodeURIComponent برای رمزگشایی مقدار
+            return decodeURIComponent(cookie.substring(cookieName.length, cookie.length));
+        }
+    }
+    return "";
+}
+
+
+
 var app = new Vue({
     el: "#app",
     data: {
@@ -59,6 +90,7 @@ var app = new Vue({
                 };
                 if (!this.canChat) {
                     scrollToChat();
+                    setCookie("username",this.name);
                     this.name = this.name.split("::")[0];
                 }
                 this.canChat = true;
@@ -81,5 +113,6 @@ var app = new Vue({
     },
     mounted: function () {
         console.log('started vue app');
+        this.name = getCookie("username")
     },
 });
