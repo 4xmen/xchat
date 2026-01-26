@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat با WebSocket</title>
+    <link rel="stylesheet" href="app.css">
+    <script src="vue.min.js"></script>
+</head>
+<body>
+
+<div id="app">
+    <div id="msg-box">
+
+        <textarea v-model="msg" @keydown.enter="sendMessage" rows="4" v-if="canChat"></textarea>
+        <input type="text" v-else v-model="name" @keydown.enter="sendMessage"  placeholder="what is your name...">
+        <button @click="sendMessage">
+            Send
+        </button>
+    </div>
+
+    <ul id="chat">
+        <li v-for="msg in msgList" :class=" calcClass(msg) ">
+            <i :class="msg.role">
+                {{msg.username}}:
+            </i>
+            <p dir="auto">
+                {{msg.text}}
+            </p>
+            <time>
+                {{fixTime(msg.time)}}
+            </time>
+        </li>
+    </ul>
+
+</div>
+<script src="app.js"></script>
+<script>
+</script>
+
+</body>
+</html>
