@@ -5,7 +5,7 @@ A **minimal, lightweight WebSocket chat server** written in **Rust** using **Axu
 
 > This project intentionally keeps things **simple, minimal, and fast**, suitable for emergency communication, internal team chat, or environments where messaging platforms are unreliable.
 
-
+![screenshot](screenshots/screenshot.png)
 ---
 
 ## ✨ Features
