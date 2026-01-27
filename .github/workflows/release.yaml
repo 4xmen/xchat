@@ -1,0 +1,67 @@
+name: Rust Cross-Platform Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # هر تگی که با v شروع میشه و فرمت semantic versioning داره
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build on ${{ matrix.platform.os }}
+    runs-on: ${{ matrix.platform.os }}
+    strategy:
+      matrix:
+        platform:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            extension: ''
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            extension: '.exe'
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            extension: ''
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform.target }}
+
+      - name: Build
+        run: cargo build --release --target ${{ matrix.platform.target }}
+
+      - name: Rename binary
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          cp target/${{ matrix.platform.target }}/release/xchat${{ matrix.platform.extension }} artifacts/xchat-${{ matrix.platform.target }}${{ matrix.platform.extension }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.platform.target }}
+          path: artifacts/xchat-${{ matrix.platform.target }}${{ matrix.platform.extension }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            artifacts/x86_64-unknown-linux-gnu/xchat-x86_64-unknown-linux-gnu
+            artifacts/x86_64-pc-windows-msvc/xchat-x86_64-pc-windows-msvc.exe
+            artifacts/x86_64-apple-darwin/xchat-x86_64-apple-darwin
