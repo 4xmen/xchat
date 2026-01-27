@@ -1,5 +1,5 @@
 
-# 🟢 Minimal Rust WebSocket Chat
+# 🟢 Minimal Rust&Python WebSocket Chat
 
 A **minimal, lightweight WebSocket chat server** written in **Rust** using **Axum**. Designed for **high performance, low-resource servers**, and resilient in **unstable network environments**.
 
@@ -127,7 +127,7 @@ proxy_http_version 1.1;
 
 ---
 
-## 🚀 Running the Server
+## 🚀 Running the Rust Server
 
 ```bash
 cargo run --release
@@ -146,6 +146,12 @@ wss://your-domain/ws
 ```
 
 ---
+
+---
+
+## 🚀 Running the python Server Read This 
+
+See the "ReadMePython.md" for detailed run python server.
 
 ## ⚠️ Security Notice
 
