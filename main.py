@@ -15,16 +15,12 @@ from dotenv import load_dotenv
 # Load environment variables FIRST
 load_dotenv()
 
-# ======================
-# FIXED ENUM DEFINITION (Pydantic v2 compatible)
-# ======================
+
 class Role(StrEnum):  # Uses standard library StrEnum (Python 3.11+)
     ADMIN = "Admin"
     USER = "User"
 
-# ======================
-# FIXED PYDANTIC MODELS (v2 syntax)
-# ======================
+
 class Member(BaseModel):
     role: Role
     name: str
@@ -42,9 +38,7 @@ class ChatMessage(BaseModel):
         "use_enum_values": True  # Serializes enums to their string values
     }
 
-# ======================
-# APPLICATION STATE
-# ======================
+
 class AppState:
     def __init__(self):
         self.clients: Set[WebSocket] = set()
@@ -52,9 +46,7 @@ class AppState:
 
 app_state = AppState()
 
-# ======================
-# HELPER FUNCTIONS
-# ======================
+
 def get_current_time() -> str:
     """Generate RFC3339 timestamp matching Rust's to_rfc3339()"""
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -85,12 +77,7 @@ async def broadcast_message(msg: ChatMessage):
     
     app_state.clients -= disconnected
 
-# ======================
-# FASTAPI APP SETUP
-# ======================
-# ======================
-# FASTAPI APP SETUP (CRITICAL CHANGE HERE)
-# ======================
+
 app = FastAPI(title="XChat", version="1.0")
 
 app.add_middleware(
@@ -101,18 +88,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ⚠️ REMOVE THESE LINES FROM PREVIOUS CODE:
-# app.mount("/static", StaticFiles(directory="static"), name="static")
-# @app.get("/") ... (remove the root route function entirely)
 
-# ======================
-# WEBSOCKET HANDLER (UNCHANGED)
-# ======================
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    # ... [KEEP EXACT SAME IMPLEMENTATION FROM PREVIOUS FIXED CODE] ...
-    # (IP handling, client tracking, message broadcasting, etc.)
-    # FULL IMPLEMENTATION BELOW FOR COMPLETENESS
     await websocket.accept()
     x_forwarded_for = websocket.headers.get("x-forwarded-for")
     ip = x_forwarded_for.split(",")[0].strip() if x_forwarded_for else (
@@ -166,13 +145,10 @@ async def websocket_endpoint(websocket: WebSocket):
                 message_type="leave"
             ))
 
-# ✅ ADD THIS AT THE VERY END (AFTER WEBSOCKET ROUTE):
-# Serves static files with index.html fallback (matches Rust behavior)
+
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
 
-# ======================
-# ENTRY POINT (UNCHANGED)
-# ======================
+
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", "8000"))
