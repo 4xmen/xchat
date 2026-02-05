@@ -12,31 +12,71 @@
 <div id="app">
     <div id="msg-box">
 
-        <textarea v-model="msg" @keydown.enter="sendMessage" rows="4" v-if="canChat"></textarea>
-        <input type="text" v-else v-model="name" @keydown.enter="sendMessage"  placeholder="what is your name...">
-        <button @click="sendMessage">
-            Send
-        </button>
+
+        <!-- When connected: Message + Upload -->
+        <template v-if="canChat">
+            <textarea v-model="msg" @keydown.enter="sendMessage" rows="4"></textarea>
+
+
+            <!-- Only allowed types (according to backend whitelist) -->
+            <input
+                    type="file"
+                    @change="onFilePicked"
+                    accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,application/zip"
+            />
+        </template>
+
+
+        <!-- When not yet connected: just the name -->
+        <input
+                type="text"
+                v-else
+                v-model="name"
+                @keydown.enter="sendMessage"
+                placeholder="what is your name..."
+        >
+
+        <button @click="sendMessage">Send</button>
     </div>
 
     <ul id="chat">
-        <li v-for="msg in msgList" :class=" calcClass(msg) ">
-            <i :class="msg.role">
-                {{msg.username}}:
+        <li v-for="m in msgList" :class="calcClass(m)">
+            <i :class="m.role">
+                {{m.username}}:
             </i>
-            <p dir="auto">
-                {{msg.text}}
+
+            <p dir="auto" v-if="m.text && m.text.length">
+                {{m.text}}
             </p>
+
+            <!-- Show attachment -->
+            <div v-if="m.attachment" style="margin-top: 6px;">
+                <!-- If the image was inline -->
+                <img
+                        v-if="m.attachment.mime && m.attachment.mime.startsWith('image/')"
+                        :src="m.attachment.url"
+                        style="max-width: 260px; border-radius: 8px; display:block;"
+                />
+
+                <!-- If it was not an image, link -->
+                <a
+                        v-else
+                        :href="m.attachment.url"
+                        target="_blank"
+                        rel="noopener"
+                >
+                    {{ m.attachment.filename }}
+                </a>
+            </div>
+
             <time>
-                {{fixTime(msg.time)}}
+                {{fixTime(m.time)}}
             </time>
         </li>
     </ul>
 
 </div>
-<script src="app.js"></script>
-<script>
-</script>
 
+<script src="app.js"></script>
 </body>
 </html>
