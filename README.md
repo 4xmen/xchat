@@ -23,6 +23,72 @@ A **minimal, lightweight WebSocket chat server** written in **Rust** using **Axu
 
 ---
 
+
+## 📁 File Upload & Attachments
+
+### 🚀 Upload Endpoint
+Files can now be uploaded via HTTP:
+
+POST /upload
+
+✨ Details:
+- Uses `multipart/form-data`
+- Files are stored on disk (default: `static/uploads`)
+- Returns file metadata as JSON
+
+📦 Example response:
+{
+"url": "/uploads/uuid-filename.png",
+"filename": "photo.png",
+"mime": "image/png"
+}
+
+---
+
+## 📎 Attachments in Chat Messages
+
+Chat messages now support:
+- 📝 Text only
+- 📎 File only
+- 📝 + 📎 Text and file together
+
+⚠️ Empty messages are ignored **unless an attachment exists**.
+
+🧪 Example WebSocket payload:
+{
+"text": "optional text",
+"attachment": {
+"url": "/uploads/file.png",
+"filename": "file.png",
+"mime": "image/png"
+}
+}
+
+---
+
+
+## 🧹 Automatic Cleanup of Uploaded Files
+
+✨ Behavior:
+- Uploaded files are linked to chat messages
+- When old messages are removed (due to retention limits):
+    - 🗑️ Their files are automatically deleted from disk
+- Prevents unused files from accumulating in `static/uploads`
+
+---
+
+## 🧠 Configurable Message Retention (Updated)
+
+⚙️ Configuration:
+MESSAGE_LIMIT=50
+
+📌 Rules:
+- MESSAGE_LIMIT > 0 → keep only the last **N** messages
+- MESSAGE_LIMIT = 0 → keep **all** messages (no deletion)
+
+📁 File cleanup follows the same rule.
+
+
 ## 📡 Architecture
 
 ```text
@@ -94,6 +160,18 @@ export BIND_ADDR=0.0.0.0:3000
 export TOKEN=super-secret-token
 ```
 
+
+---
+
+
+## 🔒 MIME Type Whitelisting
+
+Only explicitly allowed MIME types can be uploaded.
+
+✅ Example:
+ALLOWED_MIMES=image/jpeg,image/png,image/webp,image/gif,application/pdf,application/zip
+
+❌ Unsupported types are rejected automatically.
 
 ---
 
@@ -200,3 +278,49 @@ In-memory History (Last 50 messages)
 * History is sent to **new clients** on connect
 * Backend handles `join`, `leave`, `message` events
 
+
+
+## 🧾 MIME Types Reference
+
+### 🖼 Images
+image/jpeg  
+image/png  
+image/webp  
+image/gif  
+image/bmp  
+image/heic  
+image/heif  
+image/svg+xml ⚠️
+
+### 📄 Documents
+application/pdf  
+text/plain  
+text/csv  
+text/markdown
+
+### 📦 Archives
+application/zip  
+application/x-zip-compressed  
+application/x-7z-compressed  
+application/gzip  
+application/x-tar
+
+### 🎵 Audio
+audio/mpeg  
+audio/wav  
+audio/ogg  
+audio/flac  
+audio/aac
+
+### 🎥 Video
+video/mp4  
+video/webm  
+video/ogg
+
+### ☠️ Not Recommended / Dangerous
+application/x-msdownload  
+application/x-sh  
+application/x-bat  
+application/java-archive
+
+---

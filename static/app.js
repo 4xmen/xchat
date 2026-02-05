@@ -36,7 +36,7 @@ function getCookie(name) {
             cookie = cookie.substring(1);
         }
         if (cookie.indexOf(cookieName) === 0) {
-            // استفاده از decodeURIComponent برای رمزگشایی مقدار
+            // Using decodeURIComponent to decode the value
             return decodeURIComponent(cookie.substring(cookieName.length, cookie.length));
         }
     }
@@ -59,11 +59,11 @@ var app = new Vue({
             if (!this.canChat || this.ws == null) {
                 this.handleWebSocket(this.name);
             } else {
-                if (this.msg.trim().length == 0) {
-                    return;
-                }
+                const t = this.msg.trim();
+                if (t.length === 0) return;
+
                 e.preventDefault();
-                this.ws.send(this.msg.trim());
+                this.ws.send(JSON.stringify({ text: t }));
                 this.msg = "";
             }
         },
@@ -73,10 +73,12 @@ var app = new Vue({
                 return false;
             }
             try {
-                this.ws = new WebSocket(`ws://${location.host}/ws`);
+                const proto = location.protocol === "https:" ? "wss" : "ws";
+
+                this.ws = new WebSocket(`${proto}://${location.host}/ws`);
 
                 this.ws.onopen = () => {
-                    this.ws.send(username); // اولین پیام = username
+                    this.ws.send(username); // first msg = username
                 };
 
                 this.ws.onmessage = (e) => {
@@ -98,6 +100,54 @@ var app = new Vue({
                 console.log(e.message);
             }
 
+        },
+        async onFilePicked(e) {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+
+            // if not connect first must be connect
+            if (!this.canChat || !this.ws || this.ws.readyState !== 1) {
+                this.handleWebSocket(this.name);
+                try {
+                    await this.waitForWsOpen();
+                } catch (err) {
+                    alert("WebSocket connection failed");
+                    return;
+                }
+            }
+
+            try {
+                const fd = new FormData();
+                fd.append("file", file);
+
+                const res = await fetch("/upload", { method: "POST", body: fd });
+                if (!res.ok) {
+                    const t = await res.text();
+                    alert("upload failed: " + t);
+                    return;
+                }
+
+                const meta = await res.json();
+
+                // msg with file (msg without file is allowed)
+                this.ws.send(JSON.stringify({ text: "", attachment: meta }));
+            } catch (err) {
+                console.error(err);
+                alert("upload failed");
+            } finally {
+                e.target.value = "";
+            }
+        },
+        waitForWsOpen(timeoutMs = 5000) {
+            return new Promise((resolve, reject) => {
+                const start = Date.now();
+                const tick = () => {
+                    if (this.ws && this.ws.readyState === 1) return resolve();
+                    if (Date.now() - start > timeoutMs) return reject(new Error("ws open timeout"));
+                    setTimeout(tick, 50);
+                };
+                tick();
+            });
         },
         fixTime: function (datetime) {
             let splited = datetime.split("T");
